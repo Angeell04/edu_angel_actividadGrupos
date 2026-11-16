@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<productos>
+    <producto>
+        <id>101</id>
+        <nombre>Portátil Gaming Asus</nombre>
+        <categoria>Informática</categoria>
+        <precio>899.99</precio>
+        <cantidad>5</cantidad>
+    </producto>
+    <producto>
+        <id>102</id>
+        <nombre>Ratón Inalámbrico Logitech</nombre>
+        <categoria>Periféricos</categoria>
+        <precio>24.50</precio>
+        <cantidad>20</cantidad>
+    </producto>
+    <producto>
+        <id>103</id>
+        <nombre>Teclado Mecánico RGB</nombre>
+        <categoria>Periféricos</categoria>
+        <precio>65.00</precio>
+        <cantidad>12</cantidad>
+    </producto>
+    <producto>
+        <id>104</id>
+        <nombre>Monitor 27 Pulgadas 144Hz</nombre>
+        <categoria>Monitores</categoria>
+        <precio>189.95</precio>
+        <cantidad>8</cantidad>
+    </producto>
+</productos>
