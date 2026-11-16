@@ -41,9 +41,15 @@ public class ConversorXmlMarkdownHtml {
      */
     public static void main(String[] args) {
         // Decisión de diseño: Permitir ruta por parámetro para facilitar las pruebas (caso límite / fichero inexistente)
-        // manteniendo por defecto la ruta original de la práctica.
-        String rutaXml = (args.length > 0) ? args[0] : "src/main/java/markdown/productos.xml";
-        File xmlFile = new File(rutaXml);
+        // y si no se indica, buscar "productos.xml" en el directorio actual (para ejecución desde .jar/.bat)
+        // o en la ruta del código fuente "src/main/java/markdown/productos.xml".
+        File xmlFile;
+        if (args.length > 0) {
+            xmlFile = new File(args[0]);
+        } else {
+            File localXml = new File("productos.xml");
+            xmlFile = localXml.exists() ? localXml : new File("src/main/java/markdown/productos.xml");
+        }
         Path mdPath = Path.of("productos.md");
         Path htmlPath = Path.of("productos.html");
 

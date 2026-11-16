@@ -9,67 +9,101 @@ La aplicación **`ConversorXmlMarkdownHtml`** tiene como finalidad automatizar l
 1. **Informe en formato Markdown (`productos.md`)**: presenta los productos en una tabla alineada con cálculo de subtotales por línea, un resumen ejecutivo del inventario (total de referencias, total de unidades y valor económico total del stock: `precio × cantidad`) y la marca temporal de generación.
 2. **Informe en formato HTML5 (`productos.html`)**: generado directamente a partir del contenido del fichero `.md` utilizando la librería **`commonmark-java`** junto con su extensión para tablas GFM (*GitHub Flavored Markdown*), aplicando una hoja de estilos CSS integrada para su visualización directa en cualquier navegador web.
 
+---
+
 ### 1.2. Requisitos y librerías
-* **Entorno de ejecución**: Java Development Kit (**JDK 15 o superior**, probado en OpenJDK 26).
-* **Gestor de dependencias y construcción**: **Apache Maven** (el proyecto incluye el wrapper `mvnw` / `mvnw.cmd`).
-* **Librerías empleadas en `pom.xml`**:
+* **Requisito para ejecutar el `.jar` / `.bat` en cualquier dispositivo**: Tener instalado **Java (JRE o JDK) versión 15 o superior** configurado en la variable de entorno `PATH` del sistema (comprobable con `java -version`). No se necesita tener instalado ni un IDE ni Maven en el equipo destino, ya que el archivo **`ConversorXmlMarkdownHtml.jar`** es un *Fat JAR* autocontenido que incluye todas las librerías necesarias.
+* **Requisitos para compilar o lanzar tests desde código fuente**: **Apache Maven** (o usar el wrapper incluido `mvnw` / `mvnw.cmd`).
+* **Librerías empleadas (`pom.xml`)**:
   * **API estándar de Java XML DOM (`javax.xml.parsers` / `org.w3c.dom`)**: incluida en el JDK para el parseo jerárquico del archivo `productos.xml`.
   * **Java NIO.2 (`java.nio.file`) y `java.time`**: incluidas en el JDK para la lectura/escritura eficiente en codificación `UTF-8` y el formateo de fechas (`LocalDateTime`, `DateTimeFormatter`).
-  * **CommonMark (`org.commonmark:commonmark:0.24.0`)**: librería externa para parsear el documento Markdown en un árbol sintáctico (AST) y renderizarlo a HTML.
-  * **CommonMark GFM Tables (`org.commonmark:commonmark-ext-gfm-tables:0.24.0`)**: extensión oficial necesaria para que el parser y el renderizador de CommonMark reconozcan la sintaxis de tablas (`| col |`) y las conviertan en etiquetas `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>` y `<td>`.
-  * **JUnit 5 Jupiter (`org.junit.jupiter:junit-jupiter-api:5.13.2` y `junit-jupiter-engine:5.13.2`)**: framework de pruebas unitarias para la ejecución automatizada de la batería de pruebas.
+  * **CommonMark (`org.commonmark:commonmark:0.24.0`)**: librería externa empaquetada dentro del `.jar` para parsear el documento Markdown en un árbol sintáctico (AST) y renderizarlo a HTML.
+  * **CommonMark GFM Tables (`org.commonmark:commonmark-ext-gfm-tables:0.24.0`)**: extensión oficial necesaria para que CommonMark reconozca las tablas (`| col |`) y las convierta en etiquetas `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>` y `<td>`.
+  * **JUnit 5 Jupiter (`org.junit.jupiter:junit-jupiter-api:5.13.2` y `junit-jupiter-engine:5.13.2`)**: framework de pruebas unitarias para la ejecución automatizada de los casos de prueba.
+  * **Maven Shade Plugin (`org.apache.maven.plugins:maven-shade-plugin:3.5.1`)**: plugin configurado en `pom.xml` para empaquetar las clases del proyecto junto con las dependencias de CommonMark y definir `markdown.ConversorXmlMarkdownHtml` como `Main-Class` en el manifiesto del ejecutable `ConversorXmlMarkdownHtml.jar`.
 
-```xml
-<!-- Dependencias en pom.xml para conversión Markdown -> HTML y pruebas JUnit Jupiter -->
-<dependency>
-    <groupId>org.commonmark</groupId>
-    <artifactId>commonmark</artifactId>
-    <version>0.24.0</version>
-</dependency>
-<dependency>
-    <groupId>org.commonmark</groupId>
-    <artifactId>commonmark-ext-gfm-tables</artifactId>
-    <version>0.24.0</version>
-</dependency>
-<dependency>
-    <groupId>org.junit.jupiter</groupId>
-    <artifactId>junit-jupiter-api</artifactId>
-    <version>5.13.2</version>
-    <scope>test</scope>
-</dependency>
-<dependency>
-    <groupId>org.junit.jupiter</groupId>
-    <artifactId>junit-jupiter-engine</artifactId>
-    <version>5.13.2</version>
-    <scope>test</scope>
-</dependency>
-```
+---
 
 ### 1.3. Ficheros de entrada
-* **Ruta por defecto**: `src/main/java/markdown/productos.xml` (también admite recibir otra ruta como argumento de línea de comandos `args[0]`).
-* **Estructura esperada**: Documento XML codificado en `UTF-8` con un elemento raíz `<productos>` que contiene cero, uno o varios nodos `<producto>`, cada uno con las etiquetas `<id>`, `<nombre>`, `<categoria>`, `<precio>` (decimal no negativo) y `<cantidad>` (entero no negativo).
+* **Archivo de entrada**: `productos.xml`.
+  * Cuando se ejecuta mediante `ejecutar.bat` o `java -jar ConversorXmlMarkdownHtml.jar`, busca automáticamente `productos.xml` en la misma carpeta desde donde se lanza (o en `src/main/java/markdown/productos.xml` si se ejecuta dentro del proyecto).
+  * También admite pasar cualquier otra ruta o archivo XML como primer argumento por consola: `ejecutar.bat mi_catalogo.xml` o `java -jar ConversorXmlMarkdownHtml.jar mi_catalogo.xml`.
+* **Estructura esperada del XML**: Documento codificado en `UTF-8` con un elemento raíz `<productos>` que contiene cero, uno o varios nodos `<producto>`, cada uno con las etiquetas obligatorias `<id>`, `<nombre>`, `<categoria>`, `<precio>` (decimal no negativo) y `<cantidad>` (entero no negativo).
 
-### 1.4. Pasos para ejecutar la aplicación y las pruebas JUnit
-**Opción A — Desde el IDE (IntelliJ IDEA):**
-1. Abrir el proyecto Maven `actividad1ACD` y sincronizar `pom.xml`.
-2. Para ejecutar la aplicación: abrir `src/main/java/markdown/ConversorXmlMarkdownHtml.java`, clic derecho y seleccionar **Run 'ConversorXmlMarkdownHtml.main()'**.
-3. Para ejecutar los tests JUnit Jupiter: abrir `src/test/java/markdown/ConversorXmlMarkdownHtmlTest.java`, clic derecho y seleccionar **Run 'ConversorXmlMarkdownHtmlTest'**.
+---
 
-**Opción B — Desde la terminal con Maven Wrapper:**
-1. Situarse en la raíz del proyecto (`C:\Users\miran\IdeaProjects\actividad1ACD`).
-2. Ejecutar la aplicación principal:
-   ```powershell
-   .\mvnw.cmd compile exec:java "-Dexec.mainClass=markdown.ConversorXmlMarkdownHtml"
-   ```
-3. Ejecutar la suite de pruebas **JUnit Jupiter**:
-   ```powershell
-   .\mvnw.cmd test -Dtest=ConversorXmlMarkdownHtmlTest
-   ```
+### 1.4. Pasos para ejecutarla en cualquier dispositivo (`.bat`, `.jar`, consola e IDE)
+
+Para poder ejecutar la aplicación cómodamente en **cualquier ordenador o dispositivo**, se han generado y subido al repositorio tanto el ejecutable empaquetado **`ConversorXmlMarkdownHtml.jar`** como el script lanzador **`ejecutar.bat`**.
+
+#### Opción 1 — Ejecución directa en cualquier equipo Windows mediante el script `ejecutar.bat` (Recomendado)
+1. Descargar o copiar en una misma carpeta de cualquier ordenador los tres archivos:
+   * `ejecutar.bat`
+   * `ConversorXmlMarkdownHtml.jar`
+   * `productos.xml` (o la carpeta `src/main/java/markdown/productos.xml`)
+2. Hacer **doble clic sobre `ejecutar.bat`** (o ejecutarlo desde `cmd` escribiendo `ejecutar.bat`).
+3. El script posiciona automáticamente el directorio de trabajo en su propia carpeta (`cd /d "%~dp0"`), configura la consola en `UTF-8` (`chcp 65001`), verifica si Java está instalado en el equipo y lanza `ConversorXmlMarkdownHtml.jar`.
+4. Al finalizar, se habrán creado en esa misma carpeta los archivos **`productos.md`** y **`productos.html`**.
+
+**Contenido del script `ejecutar.bat`:**
+```bat
+@echo off
+chcp 65001 > nul
+cd /d "%~dp0"
+echo =========================================================
+echo   EJECUTANDO CONVERSOR XML A MARKDOWN (.md) Y HTML (.html)
+echo =========================================================
+echo.
+
+REM Comprobar si Java esta instalado y accesible en el PATH del dispositivo
+java -version > nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] No se ha detectado Java instalado o configurado en el PATH de este equipo.
+    echo Por favor, instala Java JRE/JDK 15 o superior para ejecutar la aplicacion.
+    pause
+    exit /b 1
+)
+
+REM Ejecutar el archivo .jar forzando codificacion UTF-8 en consola
+if "%~1"=="" (
+    java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar "%~dp0ConversorXmlMarkdownHtml.jar"
+) else (
+    java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar "%~dp0ConversorXmlMarkdownHtml.jar" "%~1"
+)
+
+echo.
+echo =========================================================
+echo   PROCESO FINALIZADO
+echo =========================================================
+if "%~2"=="" pause
+```
+
+#### Opción 2 — Ejecución multiplataforma (Windows, Linux o macOS) mediante el ejecutable `.jar`
+Desde cualquier terminal de cualquier sistema operativo que disponga de Java 15+, situarse en la carpeta donde estén `ConversorXmlMarkdownHtml.jar` y `productos.xml` y ejecutar:
+```bash
+java -jar ConversorXmlMarkdownHtml.jar
+```
+O especificando la ruta de otro fichero XML de prueba:
+```bash
+java -jar ConversorXmlMarkdownHtml.jar ruta/al/fichero.xml
+```
+
+#### Opción 3 — Cómo volver a generar el `.jar` y ejecutar los tests JUnit con Maven
+Si se modifica el código fuente y se desea regenerar el `.jar` o lanzar las pruebas unitarias con JUnit Jupiter:
+```powershell
+# 1. Ejecutar las pruebas automatizadas con JUnit 5 (Jupiter)
+.\mvnw.cmd test -Dtest=ConversorXmlMarkdownHtmlTest
+
+# 2. Empaquetar de nuevo el ejecutable ConversorXmlMarkdownHtml.jar (en carpeta target/)
+.\mvnw.cmd package
+```
+
+---
 
 ### 1.5. Resultados que genera
 1. **Salida por consola**: Trazabilidad de la lectura del árbol DOM (elemento raíz, número de nodos `<producto>` encontrados y desglose de atributos de cada producto leído) junto con las rutas absolutas de los ficheros generados.
-2. **Fichero `productos.md`**: Informe en formato Markdown ubicado en la raíz del proyecto con la tabla de productos, el bloque de resumen y la fecha de generación.
-3. **Fichero `productos.html`**: Documento HTML5 completo y estilizado en la raíz del proyecto, generado a partir de `productos.md`.
+2. **Fichero `productos.md`**: Informe en formato Markdown ubicado en el directorio de ejecución con la tabla de productos, el bloque de resumen y la fecha y hora de generación.
+3. **Fichero `productos.html`**: Documento HTML5 completo y estilizado en el directorio de ejecución, generado a partir de `productos.md`.
 
 ---
 
@@ -168,15 +202,21 @@ public class ConversorXmlMarkdownHtml {
     /**
      * Método principal de ejecución.
      * Permite recibir opcionalmente por argumentos la ruta del XML de entrada,
-     * o utiliza por defecto {@code src/main/java/markdown/productos.xml}.
+     * o busca por defecto {@code productos.xml} en el directorio actual o en {@code src/main/java/markdown/productos.xml}.
      *
      * @param args Argumentos de línea de comandos (opcional: ruta del fichero XML).
      */
     public static void main(String[] args) {
         // Decisión de diseño: Permitir ruta por parámetro para facilitar las pruebas (caso límite / fichero inexistente)
-        // manteniendo por defecto la ruta original de la práctica.
-        String rutaXml = (args.length > 0) ? args[0] : "src/main/java/markdown/productos.xml";
-        File xmlFile = new File(rutaXml);
+        // y si no se indica, buscar "productos.xml" en el directorio actual (para ejecución portable desde .jar/.bat)
+        // o en la ruta del código fuente "src/main/java/markdown/productos.xml".
+        File xmlFile;
+        if (args.length > 0) {
+            xmlFile = new File(args[0]);
+        } else {
+            File localXml = new File("productos.xml");
+            xmlFile = localXml.exists() ? localXml : new File("src/main/java/markdown/productos.xml");
+        }
         Path mdPath = Path.of("productos.md");
         Path htmlPath = Path.of("productos.html");
 
@@ -400,7 +440,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Suite de pruebas unitarias y de integración con JUnit 5 (Jupiter)
  * para verificar la aplicación {@link ConversorXmlMarkdownHtml}.
- * Cubre funcionamiento normal, casos límite, entradas incorrectas y ficheros inexistentes.
+ * Cubre funcionamiento normal, caso límite funcionando y entradas con error / fichero inexistente.
  */
 class ConversorXmlMarkdownHtmlTest {
 
@@ -436,7 +476,7 @@ class ConversorXmlMarkdownHtmlTest {
     }
 
     @Test
-    @DisplayName("CP-02: Caso límite - Catálogo XML vacío sin nodos <producto>")
+    @DisplayName("CP-02: Caso límite funcionando - Catálogo XML vacío sin nodos <producto>")
     void testCasoLimiteXmlVacio() throws IOException {
         Path xmlVacio = tempDir.resolve("productos_vacio.xml");
         Files.writeString(xmlVacio, """
@@ -458,7 +498,7 @@ class ConversorXmlMarkdownHtmlTest {
     }
 
     @Test
-    @DisplayName("CP-03: Fichero inexistente - Control de ruta inválida")
+    @DisplayName("CP-03: Caso de error - Fichero inexistente")
     void testFicheroInexistente() {
         File ficheroNoExiste = tempDir.resolve("no_existe.xml").toFile();
 
@@ -473,7 +513,7 @@ class ConversorXmlMarkdownHtmlTest {
     }
 
     @Test
-    @DisplayName("CP-04: Entrada incorrecta - Precio no numérico en el XML")
+    @DisplayName("CP-04: Caso de error - Entrada incorrecta con precio no numérico")
     void testEntradaIncorrectaPrecioNoNumerico() throws IOException {
         Path xmlErroneo = tempDir.resolve("productos_erroneo.xml");
         Files.writeString(xmlErroneo, """
@@ -497,7 +537,7 @@ class ConversorXmlMarkdownHtmlTest {
     }
 
     @Test
-    @DisplayName("CP-05: Entrada incorrecta - Cantidad negativa en un producto")
+    @DisplayName("CP-05: Caso de error - Entrada incorrecta con cantidad negativa")
     void testEntradaIncorrectaValoresNegativos() throws IOException {
         Path xmlNegativo = tempDir.resolve("productos_negativo.xml");
         Files.writeString(xmlNegativo, """
@@ -526,36 +566,80 @@ class ConversorXmlMarkdownHtmlTest {
 
 ## 3. Tabla de pruebas (JUnit Jupiter)
 
-Se han implementado y ejecutado automatizadamente con **JUnit 5 (Jupiter)** cinco casos de prueba en `ConversorXmlMarkdownHtmlTest`:
+Siguiendo la rúbrica, se han diseñado e implementado con **JUnit 5 (Jupiter)** los casos pertinentes que cubren **1 caso de funcionamiento normal**, **1 caso límite funcionando** y **casos de error (fichero inexistente y entradas incorrectas)**:
 
 | ID Caso | Método JUnit (`@Test`) | Tipo de prueba | Entrada utilizada | Resultado esperado | Resultado obtenido | Valoración |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: |
-| **CP-01** | `testFuncionamientoNormal()` | **Funcionamiento normal** | `src/main/java/markdown/productos.xml` (4 productos válidos, IDs 101 a 104). | `leerProductosDesdeXml` devuelve 4 objetos `Producto`; `generarMarkdown` incluye `4` referencias, `45` unidades, `7289,55 €` y fecha; `convertirMarkdownAHtml` genera `<table>` y HTML5 completo. | Todas las aserciones (`assertEquals`, `assertTrue`) pasan correctamente. | **SUPERADO (PASS)** |
-| **CP-02** | `testCasoLimiteXmlVacio()` | **Caso límite** (XML vacío sin productos) | `productos_vacio.xml` (`<productos></productos>` creado en `@TempDir`). | Devuelve lista vacía (`isEmpty() == true`); el Markdown y HTML generados muestran la cabecera de tabla y resumen en `0` referencias, `0` unidades y `0,00 €`. | Todas las aserciones pasan sin lanzar excepciones. | **SUPERADO (PASS)** |
-| **CP-03** | `testFicheroInexistente()` | **Fichero inexistente** | Ruta inexistente `no_existe.xml` en `@TempDir`. | `leerProductosDesdeXml` lanza `IllegalArgumentException` controlada y `main()` muestra `[ERROR] El fichero XML de entrada no existe...` sin colapsar (`assertDoesNotThrow`). | `assertThrows` y `assertDoesNotThrow` verificados con éxito. | **SUPERADO (PASS)** |
-| **CP-04** | `testEntradaIncorrectaPrecioNoNumerico()` | **Entrada incorrecta** (Formato numérico inválido) | `productos_erroneo.xml` con `<precio>ochocientos</precio>`. | Captura `NumberFormatException` y lanza `IllegalArgumentException` indicando que se esperaba un valor numérico válido. | `assertThrows(IllegalArgumentException.class)` superado con el mensaje esperado. | **SUPERADO (PASS)** |
-| **CP-05** | `testEntradaIncorrectaValoresNegativos()` | **Entrada incorrecta** (Stock negativo) | `productos_negativo.xml` con `<cantidad>-3</cantidad>`. | Detecta el valor negativo y lanza `IllegalArgumentException` indicando que contiene valores negativos. | `assertThrows(IllegalArgumentException.class)` superado con éxito. | **SUPERADO (PASS)** |
+| **CP-01** | `testFuncionamientoNormal()` | **1. Funcionamiento normal** | `productos.xml` (4 productos válidos, IDs 101 a 104). | Funciona correctamente: devuelve 4 objetos `Producto`; genera `productos.md` y `productos.html` con `4` referencias, `45` unidades, `7289,55 €`, tabla `<table>` y fecha. | Todas las aserciones (`assertEquals`, `assertTrue`) pasan correctamente y se crean ambos archivos. | **SUPERADO (OK)** |
+| **CP-02** | `testCasoLimiteXmlVacio()` | **2. Caso límite (funcionando)** | `productos_vacio.xml` (`<productos></productos>` sin ningún nodo `<producto>`). | Funciona al límite sin romperse: devuelve lista vacía (`0` productos) y genera los informes `.md` y `.html` con la tabla vacía y el resumen en `0` referencias, `0` uds. y `0,00 €`. | Genera ambos archivos sin errores con totales a `0,00 €`. Test JUnit en verde. | **SUPERADO (OK)** |
+| **CP-03** | `testFicheroInexistente()` | **3. Caso de error (Fichero inexistente)** | Ruta de fichero inexistente `no_existe.xml`. | Da error controlado: `leerProductosDesdeXml` lanza `IllegalArgumentException` y `main()` imprime `[ERROR] El fichero XML de entrada no existe...` abortando sin colapsar. | `assertThrows` captura la excepción esperada y se muestra el aviso de error controlado. | **SUPERADO (OK)** |
+| **CP-04** | `testEntradaIncorrectaPrecioNoNumerico()` | **4. Caso de error (Entrada incorrecta)** | `productos_erroneo.xml` donde `<precio>ochocientos</precio>` no es numérico. | Da error controlado: detecta el formato inválido (`NumberFormatException`) y lanza `IllegalArgumentException` indicando que se esperaba un valor numérico válido. | `assertThrows(IllegalArgumentException.class)` superado con el mensaje de error esperado. | **SUPERADO (OK)** |
+| **CP-05** | `testEntradaIncorrectaValoresNegativos()` | **5. Caso de error (Entrada incorrecta)** | `productos_negativo.xml` con stock negativo `<cantidad>-3</cantidad>`. | Da error controlado: rechaza cantidades o precios negativos lanzando `IllegalArgumentException`. | `assertThrows(IllegalArgumentException.class)` superado con éxito. | **SUPERADO (OK)** |
 
 ---
 
 ## 4. Evidencias y registro de errores corregidos
 
 ### 4.1. Detección y corrección de errores durante el desarrollo
-Durante la revisión y prueba de la versión inicial de `ConversorXmlMarkdownHtml.java`, se detectaron y corrigieron los siguientes errores:
+Durante la revisión y empaquetado de la práctica, se detectaron y corrigieron los siguientes errores:
 
 1. **Falta de generación del archivo HTML (Apartado 6.b)**:
    * **Problema detectado**: Aunque las dependencias `commonmark` y `commonmark-ext-gfm-tables` estaban declaradas en `pom.xml`, el método `main` terminaba tras escribir `productos.md` y no generaba el archivo `productos.html`.
    * **Corrección aplicada**: Se implementó el método `convertirMarkdownAHtml(String markdownContent)` configurando `Parser` y `HtmlRenderer` con `TablesExtension.create()`, envolviendo la salida en una estructura HTML5 con estilos CSS y guardando el resultado en `productos.html`.
-2. **Visibilidad de métodos para pruebas unitarias con JUnit**:
-   * **Problema detectado**: Los métodos `leerProductosDesdeXml` y `generarMarkdown` tenían visibilidad `private`, lo que impedía probarlos unitariamente desde `ConversorXmlMarkdownHtmlTest`.
-   * **Corrección aplicada**: Se cambió su visibilidad a `public static`, permitiendo su verificación directa desde los tests de JUnit Jupiter.
+2. **Empaquetado del ejecutable `.jar` con dependencias (`NoClassDefFoundError` al ejecutar fuera del IDE)**:
+   * **Problema detectado**: Un `.jar` estándar generado por Maven no incluye las librerías externas (`org.commonmark`), por lo que al intentar ejecutar `java -jar` en otro dispositivo fallaría por falta de clases. Además, el `pom.xml` tenía `<packaging>war</packaging>`.
+   * **Corrección aplicada**: Se cambió el empaquetado a `<packaging>jar</packaging>` y se configuró `maven-shade-plugin` en el `pom.xml` para empaquetar las librerías de CommonMark dentro de `ConversorXmlMarkdownHtml.jar` junto con el atributo `Main-Class` en el `MANIFEST.MF`, creando además el lanzador `ejecutar.bat`.
 3. **Vulnerabilidad ante ficheros inexistentes, datos negativos o etiquetas ausentes**:
    * **Problema detectado**: En la versión inicial cualquier excepción lanzaba un `RuntimeException(e)` genérico y no se validaban precios/cantidades negativas ni etiquetas faltantes.
    * **Corrección aplicada**: Se añadió validación previa de existencia del fichero, el método auxiliar `obtenerTextoElemento(Element, String)` y control de valores negativos, verificando todos los casos con `assertThrows` en JUnit 5.
 
 ---
 
-### 4.2. Evidencia 1: Ejecución de la suite de pruebas JUnit Jupiter (`mvnw test`)
+### 4.2. Evidencia 1: Ejecución desde `ejecutar.bat` y `ConversorXmlMarkdownHtml.jar`
+
+```text
+=========================================================
+  EJECUTANDO CONVERSOR XML A MARKDOWN (.md) Y HTML (.html)
+=========================================================
+
+Elemento raiz: productos
+Nodos producto a recorrer: 4
+========= Producto 1 =========
+ID: 101
+Nombre: Portátil Gaming Asus
+Categoría: Informática
+Precio: 899.99
+Cantidad: 5
+========= Producto 2 =========
+ID: 102
+Nombre: Ratón Inalámbrico Logitech
+Categoría: Periféricos
+Precio: 24.5
+Cantidad: 20
+========= Producto 3 =========
+ID: 103
+Nombre: Teclado Mecánico RGB
+Categoría: Periféricos
+Precio: 65.0
+Cantidad: 12
+========= Producto 4 =========
+ID: 104
+Nombre: Monitor 27 Pulgadas 144Hz
+Categoría: Monitores
+Precio: 189.95
+Cantidad: 8
+
+[OK] Archivo Markdown generado: C:\Users\miran\IdeaProjects\actividad1ACD\productos.md
+[OK] Archivo HTML generado:     C:\Users\miran\IdeaProjects\actividad1ACD\productos.html
+
+=========================================================
+  PROCESO FINALIZADO
+=========================================================
+```
+
+---
+
+### 4.3. Evidencia 2: Ejecución de la suite de pruebas JUnit Jupiter (`mvnw test`)
 
 ```text
 [INFO] -------------------------------------------------------
@@ -610,7 +694,7 @@ Cantidad: 8
 
 ---
 
-### 4.3. Evidencia 2: Fichero de entrada (`src/main/java/markdown/productos.xml`)
+### 4.4. Evidencia 3: Fichero de entrada (`productos.xml`)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -648,7 +732,7 @@ Cantidad: 8
 
 ---
 
-### 4.4. Evidencia 3: Fichero Markdown generado (`productos.md`)
+### 4.5. Evidencia 4: Fichero Markdown generado (`productos.md`)
 
 ```markdown
 # Catálogo de Productos
@@ -667,12 +751,12 @@ Cantidad: 8
 - **Valor total del stock:** 7289,55 €
 
 ---
-*Informe generado el: 16/11/2026 10:42:14*
+*Informe generado el: 16/11/2026 11:05:24*
 ```
 
 ---
 
-### 4.5. Evidencia 4: Fichero HTML generado (`productos.html`)
+### 4.6. Evidencia 5: Fichero HTML generado (`productos.html`)
 
 ```html
 <!DOCTYPE html>
@@ -746,7 +830,7 @@ Cantidad: 8
 <li><strong>Valor total del stock:</strong> 7289,55 €</li>
 </ul>
 <hr />
-<p><em>Informe generado el: 16/11/2026 10:42:14</em></p>
+<p><em>Informe generado el: 16/11/2026 11:05:24</em></p>
 </body>
 </html>
 ```

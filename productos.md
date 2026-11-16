@@ -14,4 +14,4 @@
 - **Valor total del stock:** 7289,55 €
 
 ---
-*Informe generado el: 16/11/2026 10:42:14*
+*Informe generado el: 16/11/2026 11:05:24*
