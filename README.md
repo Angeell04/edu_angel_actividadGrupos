@@ -1,5 +1,9 @@
 # Memoria de Práctica — Ejercicio 6: Conversión de XML a Markdown (`.md`) y HTML (`.html`)
 
+> ### 🔗 Repositorios del Grupo
+> - **Repositorio de esta práctica (Ángel — Conversión XML a Markdown y HTML)**: [https://github.com/Angeell04/edu_angel_actividadGrupos](https://github.com/Angeell04/edu_angel_actividadGrupos)
+> - **Repositorio del compañero (Eduardo Cruz Muñoz — Investigación Jackson)**: [https://github.com/EduardoCruzmunioz/JacksonInvestigacion.git](https://github.com/EduardoCruzmunioz/JacksonInvestigacion.git)
+
 ---
 
 ## 1. Instrucciones de ejecución
@@ -639,7 +643,31 @@ Cantidad: 8
 
 ---
 
-### 4.3. Evidencia 2: Ejecución de la suite de pruebas JUnit Jupiter (`mvnw test`)
+### 4.3. Evidencia 2: Capturas y ejecución de las pruebas JUnit Jupiter (`ConversorXmlMarkdownHtmlTest`)
+
+A continuación se muestran las capturas reales tomadas desde el corredor de pruebas de IntelliJ IDEA (`5 tests passed`) para cada uno de los escenarios probados en la práctica:
+
+#### 1) Prueba de Funcionamiento Normal (`CP-01: testFuncionamientoNormal`)
+Se lee correctamente el fichero `productos.xml` con sus 4 productos válidos (IDs 101 al 104), calculando el stock total (`45` unidades y `7289,55 €`) y generando `productos.md` y `productos.html`:
+
+![CP-01 Funcionamiento Normal](src/images/Captura%20de%20pantalla%202026-11-17%20130301.png)
+
+#### 2) Prueba de Caso Límite Funcionando (`CP-02: testCasoLimiteXmlVacio`)
+Se procesa un catálogo XML válido pero sin ningún nodo `<producto>` (`Nodos producto a recorrer: 0`), verificando que la aplicación funciona al límite sin lanzar excepciones y genera el informe con totales a `0`:
+
+![CP-02 Caso Límite XML Vacío](src/images/Captura%20de%20pantalla%202026-11-17%20130229.png)
+
+#### 3) Prueba de Caso de Error — Fichero Inexistente (`CP-03: testFicheroInexistente`)
+Se pasa la ruta de un fichero que no existe (`no_existe.xml`), comprobando que la aplicación detecta la ausencia del archivo y muestra el mensaje de error controlado sin colapsar:
+
+![CP-03 Fichero Inexistente](src/images/Captura%20de%20pantalla%202026-11-17%20130215.png)
+
+#### 4) Prueba de Caso de Error — Entrada Incorrecta (`CP-04` y `CP-05: testEntradaIncorrectaPrecioNoNumerico` / `testEntradaIncorrectaValoresNegativos`)
+Se procesa un fichero XML con un producto que contiene datos erróneos (precio no numérico `"ochocientos"` o cantidad negativa `-3`), verificando que al evaluar el `Producto 1` se captura el error y se lanza `IllegalArgumentException` controlada:
+
+![CP-04 y CP-05 Entrada Incorrecta](src/images/Captura%20de%20pantalla%202026-11-17%20130241.png)
+
+#### Salida completa por consola de Maven Surefire (`mvnw test`):
 
 ```text
 [INFO] -------------------------------------------------------
