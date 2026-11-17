@@ -582,24 +582,9 @@ Siguiendo la rúbrica, se han diseñado e implementado con **JUnit 5 (Jupiter)**
 
 ---
 
-## 4. Evidencias y registro de errores corregidos
+## 4. Evidencias
 
-### 4.1. Detección y corrección de errores durante el desarrollo
-Durante la revisión y empaquetado de la práctica, se detectaron y corrigieron los siguientes errores:
-
-1. **Falta de generación del archivo HTML (Apartado 6.b)**:
-   * **Problema detectado**: Aunque las dependencias `commonmark` y `commonmark-ext-gfm-tables` estaban declaradas en `pom.xml`, el método `main` terminaba tras escribir `productos.md` y no generaba el archivo `productos.html`.
-   * **Corrección aplicada**: Se implementó el método `convertirMarkdownAHtml(String markdownContent)` configurando `Parser` y `HtmlRenderer` con `TablesExtension.create()`, envolviendo la salida en una estructura HTML5 con estilos CSS y guardando el resultado en `productos.html`.
-2. **Empaquetado del ejecutable `.jar` con dependencias (`NoClassDefFoundError` al ejecutar fuera del IDE)**:
-   * **Problema detectado**: Un `.jar` estándar generado por Maven no incluye las librerías externas (`org.commonmark`), por lo que al intentar ejecutar `java -jar` en otro dispositivo fallaría por falta de clases. Además, el `pom.xml` tenía `<packaging>war</packaging>`.
-   * **Corrección aplicada**: Se cambió el empaquetado a `<packaging>jar</packaging>` y se configuró `maven-shade-plugin` en el `pom.xml` para empaquetar las librerías de CommonMark dentro de `ConversorXmlMarkdownHtml.jar` junto con el atributo `Main-Class` en el `MANIFEST.MF`, creando además el lanzador `ejecutar.bat`.
-3. **Vulnerabilidad ante ficheros inexistentes, datos negativos o etiquetas ausentes**:
-   * **Problema detectado**: En la versión inicial cualquier excepción lanzaba un `RuntimeException(e)` genérico y no se validaban precios/cantidades negativas ni etiquetas faltantes.
-   * **Corrección aplicada**: Se añadió validación previa de existencia del fichero, el método auxiliar `obtenerTextoElemento(Element, String)` y control de valores negativos, verificando todos los casos con `assertThrows` en JUnit 5.
-
----
-
-### 4.2. Evidencia 1: Ejecución desde `ejecutar.bat` y `ConversorXmlMarkdownHtml.jar`
+### 4.1. Evidencia 1: Ejecución desde `ejecutar.bat` y `ConversorXmlMarkdownHtml.jar`
 
 ```text
 =========================================================
@@ -643,7 +628,7 @@ Cantidad: 8
 
 ---
 
-### 4.3. Evidencia 2: Capturas y ejecución de las pruebas JUnit Jupiter (`ConversorXmlMarkdownHtmlTest`)
+### 4.2. Evidencia 2: Capturas y ejecución de las pruebas JUnit Jupiter (`ConversorXmlMarkdownHtmlTest`)
 
 A continuación se muestran las capturas reales tomadas desde el corredor de pruebas de IntelliJ IDEA (`5 tests passed`) para cada uno de los escenarios probados en la práctica:
 
@@ -722,7 +707,7 @@ Cantidad: 8
 
 ---
 
-### 4.4. Evidencia 3: Fichero de entrada (`productos.xml`)
+### 4.3. Evidencia 3: Fichero de entrada (`productos.xml`)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -760,7 +745,7 @@ Cantidad: 8
 
 ---
 
-### 4.5. Evidencia 4: Fichero Markdown generado (`productos.md`)
+### 4.4. Evidencia 4: Fichero Markdown generado (`productos.md`)
 
 ```markdown
 # Catálogo de Productos
@@ -784,7 +769,7 @@ Cantidad: 8
 
 ---
 
-### 4.6. Evidencia 5: Fichero HTML generado (`productos.html`)
+### 4.5. Evidencia 5: Fichero HTML generado (`productos.html`)
 
 ```html
 <!DOCTYPE html>
